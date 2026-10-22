@@ -37,7 +37,7 @@ const GOOGLE_URL = 'https://www.google.pl';
     console.log('⏳ Wpisuję hasło...');
     await page.click('input[name="q"]');
     await page.type('input[name="q"]', searchTerm, { delay: 50 });
-    await page.press('input[name="q"]', 'Enter');
+    await page.keyboard.press('Enter');
 
     // Czekaj na wyniki
     console.log('⏳ Czekam na wyniki Google...');
