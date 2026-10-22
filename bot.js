@@ -14,7 +14,7 @@ const GOOGLE_URL = 'https://www.google.pl';
   const page = await browser.newPage();
   
   await page.setUserAgent(
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15'
   );
 
   try {
@@ -47,7 +47,7 @@ const GOOGLE_URL = 'https://www.google.pl';
     // Szukaj linku - aż znajdzie!
     let mainLink = null;
     let page_num = 1;
-    const MAX_PAGES = 20; // Limit żeby się nie zawiesiło
+    const MAX_PAGES = 20;
 
     while (!mainLink && page_num <= MAX_PAGES) {
       console.log(`🔎 Szukam ${YOUR_DOMAIN} na stronie ${page_num}...`);
@@ -63,33 +63,17 @@ const GOOGLE_URL = 'https://www.google.pl';
       }, YOUR_DOMAIN);
 
       if (!mainLink) {
-  console.log(`⚠️ Nie znaleziono na stronie ${page_num}, szukam dalej...`);
-  
-  // Scroll do dołu
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await page.waitForTimeout(1000);
-  
-  // Idź na następną stronę
-  try {
-    let nextButton = null;
-    [nextButton] = await page.$x("//a[contains(text(), 'Następna')]");
-    
-    if (nextButton) {
-      console.log('⏳ Przechodzę na stronę ' + (page_num + 1) + '...');
-      await nextButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 });
-      await page.waitForTimeout(1500);
-      page_num++;
-    } else {
-      console.log('❌ Koniec wyników Google!');
-      break;
-    }
-  } catch (error) {
-    console.log('❌ Błąd przy przechodzeniu do następnej strony');
-    break;
-  }
-      }
-          const nextButton = await page.$('a[aria-label="Następna strona"]');
+        console.log(`⚠️ Nie znaleziono na stronie ${page_num}, szukam dalej...`);
+        
+        // Scroll do dołu
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+        await page.waitForTimeout(1000);
+        
+        // Idź na następną stronę
+        try {
+          let nextButton = null;
+          [nextButton] = await page.$x("//a[contains(text(), 'Następna')]");
+          
           if (nextButton) {
             console.log('⏳ Przechodzę na stronę ' + (page_num + 1) + '...');
             await nextButton.click();
@@ -108,7 +92,7 @@ const GOOGLE_URL = 'https://www.google.pl';
     }
 
     if (!mainLink) {
-      console.log(`\n❌ Nie znaleziono ${YOUR_DOMAIN} w TOP ${(page_num - 1) * 10} wynikach!`);
+      console.log(`\n❌ Nie znaleziono ${YOUR_DOMAIN} w wynikach!`);
       await browser.close();
       return;
     }
