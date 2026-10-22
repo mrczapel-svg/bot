@@ -44,26 +44,55 @@ const GOOGLE_URL = 'https://www.google.pl';
     await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 });
     await page.waitForTimeout(2000);
 
-    // Znajdź link do profilkariery.pl
-    console.log(`🔎 Szukam ${YOUR_DOMAIN} w wynikach...`);
-    const mainLink = await page.evaluate((domain) => {
-      const links = Array.from(document.querySelectorAll('a'));
-      const found = links.find(a => 
-        a.href && 
-        a.href.includes(domain) && 
-        !a.href.includes('cache:')
-      );
-      return found ? found.href : null;
-    }, YOUR_DOMAIN);
+    // Szukaj linku - aż znajdzie!
+    let mainLink = null;
+    let page_num = 1;
+    const MAX_PAGES = 20; // Limit żeby się nie zawiesiło
+
+    while (!mainLink && page_num <= MAX_PAGES) {
+      console.log(`🔎 Szukam ${YOUR_DOMAIN} na stronie ${page_num}...`);
+      
+      mainLink = await page.evaluate((domain) => {
+        const links = Array.from(document.querySelectorAll('a'));
+        const found = links.find(a => 
+          a.href && 
+          a.href.includes(domain) && 
+          !a.href.includes('cache:')
+        );
+        return found ? found.href : null;
+      }, YOUR_DOMAIN);
+
+      if (!mainLink) {
+        console.log(`⚠️ Nie znaleziono na stronie ${page_num}, szukam dalej...`);
+        
+        // Idź na następną stronę
+        try {
+          const nextButton = await page.$('a[aria-label="Następna strona"]');
+          if (nextButton) {
+            console.log('⏳ Przechodzę na stronę ' + (page_num + 1) + '...');
+            await nextButton.click();
+            await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 });
+            await page.waitForTimeout(1500);
+            page_num++;
+          } else {
+            console.log('❌ Koniec wyników Google!');
+            break;
+          }
+        } catch (error) {
+          console.log('❌ Błąd przy przechodzeniu do następnej strony');
+          break;
+        }
+      }
+    }
 
     if (!mainLink) {
-      console.log(`❌ Nie znaleziono ${YOUR_DOMAIN}!`);
+      console.log(`\n❌ Nie znaleziono ${YOUR_DOMAIN} w TOP ${(page_num - 1) * 10} wynikach!`);
       await browser.close();
       return;
     }
 
     // === TWOJA STRONA ===
-    console.log(`✅ Znaleziono! Klika w: ${mainLink}`);
+    console.log(`\n✅ ZNALEZIONO! Klika w: ${mainLink}`);
     console.log('⏳ Wchodzę na Twoją stronę...');
     await page.goto(mainLink, { waitUntil: 'networkidle2', timeout: 15000 });
     
@@ -73,29 +102,21 @@ const GOOGLE_URL = 'https://www.google.pl';
     // Kliknij przycisk "Akceptuję"
     console.log('⏳ Szukam przycisku "Akceptuję"...');
     try {
-      // Szukaj przycisku po tekście "Akceptuję"
-      await page.click('button:contains("Akceptuję")', { timeout: 5000 });
-      console.log('✅ Zaakceptowano cookies!');
-      await page.waitForTimeout(1500);
-    } catch {
-      try {
-        // Alternatywa - szukaj przez XPath
-        const [button] = await page.$x("//button[contains(text(), 'Akceptuję')]");
-        if (button) {
-          await button.click();
-          console.log('✅ Zaakceptowano cookies!');
-          await page.waitForTimeout(1500);
-        }
-      } catch {
-        console.log('⚠️ Nie znaleziono przycisku "Akceptuję" - kontynuuję...');
+      const [button] = await page.$x("//button[contains(text(), 'Akceptuję')]");
+      if (button) {
+        await button.click();
+        console.log('✅ Zaakceptowano cookies!');
+        await page.waitForTimeout(1500);
       }
+    } catch {
+      console.log('⚠️ Nie znaleziono przycisku cookies - kontynuuję...');
     }
 
     // CZEKAJ - Google Analytics się ładuje i zarejestrowuje
-    console.log('⏳ Czekam na Google Analytics (rejestracja wizyt)...');
+    console.log('⏳ Czekam na Google Analytics...');
     await page.waitForTimeout(5000);
 
-    console.log(`\n✅ ✅ ✅ GOTOWE!`);
+    console.log(`\n✅ ✅ ✅ SUKCES!`);
     console.log(`✔️ Wizyta zalogowana w Google Analytics`);
     console.log(`📊 Powinna być widoczna w GA za ~30 sekund\n`);
 
