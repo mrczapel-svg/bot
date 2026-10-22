@@ -1,0 +1,12 @@
+{
+  "name": "bot1",
+  "version": "1.0.0",
+  "description": "Auto visit bot",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "puppeteer": "^21.0.0"
+  }
+}
