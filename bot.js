@@ -63,10 +63,32 @@ const GOOGLE_URL = 'https://www.google.pl';
       }, YOUR_DOMAIN);
 
       if (!mainLink) {
-        console.log(`⚠️ Nie znaleziono na stronie ${page_num}, szukam dalej...`);
-        
-        // Idź na następną stronę
-        try {
+  console.log(`⚠️ Nie znaleziono na stronie ${page_num}, szukam dalej...`);
+  
+  // Scroll do dołu
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(1000);
+  
+  // Idź na następną stronę
+  try {
+    let nextButton = null;
+    [nextButton] = await page.$x("//a[contains(text(), 'Następna')]");
+    
+    if (nextButton) {
+      console.log('⏳ Przechodzę na stronę ' + (page_num + 1) + '...');
+      await nextButton.click();
+      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 });
+      await page.waitForTimeout(1500);
+      page_num++;
+    } else {
+      console.log('❌ Koniec wyników Google!');
+      break;
+    }
+  } catch (error) {
+    console.log('❌ Błąd przy przechodzeniu do następnej strony');
+    break;
+  }
+      }
           const nextButton = await page.$('a[aria-label="Następna strona"]');
           if (nextButton) {
             console.log('⏳ Przechodzę na stronę ' + (page_num + 1) + '...');
