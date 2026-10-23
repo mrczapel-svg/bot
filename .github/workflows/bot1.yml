@@ -10,18 +10,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     container:
-      image: node:18-slim
+      image: node:18
     
     steps:
       - uses: actions/checkout@v3
       
-      - name: Install Chromium
+      - name: Install Chromium and dependencies
         run: |
           apt-get update
-          apt-get install -y chromium ca-certificates
+          apt-get install -y chromium wget gnupg
       
-      - name: Install dependencies
-        run: npm install
+      - name: Install npm packages
+        run: |
+          npm install puppeteer --no-save
+          npm install
       
       - name: Run Bot1
-        run: node bot.js
+        run: |
+          export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+          export PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+          node bot.js
