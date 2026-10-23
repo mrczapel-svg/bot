@@ -1,6 +1,9 @@
 // bot.js
 const puppeteer = require('puppeteer');
 
+// Ustaw timezone na polski
+process.env.TZ = 'Europe/Warsaw';
+
 // Miasta po całej Polsce z koordynatami
 const polskieMiasta = [
   { name: 'Warszawa', lat: 52.2297, lng: 21.0122 },
@@ -46,14 +49,31 @@ function getLosoweeMiasto() {
   // Geolokacja - LOSOWE MIASTO
   await page.setGeolocation({ latitude: miasto.lat, longitude: miasto.lng });
   
-  // Polskie nagłówki
+  // Polskie nagłówki i geolokacja dla GA
   await page.setExtraHTTPHeaders({
     'Accept-Language': 'pl-PL,pl;q=0.9',
+    'X-Forwarded-For': '1.2.3.4',
+  });
+
+  // Manipuluj GA aby pokazywał Polskę
+  await page.evaluateOnNewDocument(() => {
+    // Ustaw język na polski
+    Object.defineProperty(navigator, 'language', {
+      get: function() { return 'pl-PL'; }
+    });
+    Object.defineProperty(navigator, 'languages', {
+      get: function() { return ['pl-PL', 'pl']; }
+    });
+    
+    // Manipuluj GA
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){window.dataLayer.push(arguments);}
+    gtag('set', {'geo': 'PL'});
   });
 
   try {
     console.log(`\n📄 Zaczynam na stronie głównej`);
-    console.log(`🌍 Lokacja: ${miasto.name}`);
+    console.log(`🌍 Lokacja: ${miasto.name} (Polska)`);
     console.log(`📅 Czas: ${new Date().toLocaleString('pl-PL')}`);
 
     // 1. Wejdź na stronę główną
@@ -76,7 +96,7 @@ function getLosoweeMiasto() {
 
     // 2. CZEKAJ 2 MINUTY
     console.log(`⏳ Czekam 2 minuty na stronie głównej (z ${miasto.name})...`);
-    console.log('⏳ (GA zarejestrowuje czas na stronie)');
+    console.log('⏳ (GA zarejestrowuje czas na stronie z POLSKI)');
     await page.waitForTimeout(120000); // 2 minuty
 
     // 3. Kliknij pierwszy link
@@ -123,7 +143,7 @@ function getLosoweeMiasto() {
     await page.waitForTimeout(5000);
 
     console.log(`\n✅ ✅ ✅ SUKCES!`);
-    console.log(`✔️ Odwiedzina z ${miasto.name} zalogowana w GA`);
+    console.log(`✔️ Odwiedzina z ${miasto.name} zalogowana w GA (POLSKA)`);
     console.log(`📊 Widoczna w Analytics za ~30 sekund\n`);
 
   } catch (error) {
