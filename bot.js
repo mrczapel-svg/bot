@@ -65,14 +65,23 @@ const GOOGLE_URL = 'https://www.google.pl';
       if (!mainLink) {
         console.log(`⚠️ Nie znaleziono na stronie ${page_num}, szukam dalej...`);
         
-        // Scroll do dołu
-        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-        await page.waitForTimeout(1000);
-        
-        // Idź na następną stronę
-        try {
-          let nextButton = null;
-          [nextButton] = await page.$x("//a[contains(text(), 'Następna')]");
+      // Scroll do dołu
+await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+await page.waitForTimeout(2000);
+
+// Debugowanie - pokaż wszystkie linki
+const allLinks = await page.evaluate(() => {
+  return Array.from(document.querySelectorAll('a')).map(a => ({
+    text: a.textContent.trim(),
+    href: a.href
+  })).filter(l => l.text.length < 50);
+});
+console.log('🔍 Wszystkie linki na stronie:', allLinks);
+
+// Idź na następną stronę
+try {
+  let nextButton = null;
+  [nextButton] = await page.$x("//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'następna')]");
           
           if (nextButton) {
             console.log('⏳ Przechodzę na stronę ' + (page_num + 1) + '...');
