@@ -2,24 +2,21 @@ name: Bot1 Auto Visit
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
   visit:
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    container:
+      image: buildkite/puppeteer:latest
     
     steps:
       - uses: actions/checkout@v3
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          
-      - name: Install Puppeteer
-        run: npm install puppeteer
+      - name: Install dependencies
+        run: npm install
       
       - name: Run Bot1
         run: node bot.js
