@@ -10,13 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     container:
-      image: buildkite/puppeteer:latest
+      image: node:18-slim
     
     steps:
       - uses: actions/checkout@v3
       
+      - name: Install Chromium
+        run: |
+          apt-get update
+          apt-get install -y chromium-browser
+      
       - name: Install dependencies
-        run: npm install
+        run: npm install puppeteer-core
       
       - name: Run Bot1
         run: node bot.js
