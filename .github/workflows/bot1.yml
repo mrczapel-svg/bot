@@ -8,7 +8,7 @@ on:
 jobs:
   visit:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     container:
       image: node:18-slim
     
@@ -18,10 +18,10 @@ jobs:
       - name: Install Chromium
         run: |
           apt-get update
-          apt-get install -y chromium
+          apt-get install -y chromium ca-certificates
       
       - name: Install dependencies
-        run: npm install puppeteer-core
+        run: npm install
       
       - name: Run Bot1
         run: node bot.js
