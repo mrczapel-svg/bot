@@ -1,9 +1,7 @@
 // bot.js
 const puppeteer = require('puppeteer');
 
-const searchTerm = 'Profesjonalne Cv,List Motywacyjny i Profil LinkedIn Na Zamówienie';
-const YOUR_DOMAIN = 'profilkariery.pl';
-const GOOGLE_URL = 'https://www.google.pl';
+const YOUR_URL = 'https://profilkariery.pl';
 
 (async () => {
   const browser = await puppeteer.launch({
@@ -18,98 +16,12 @@ const GOOGLE_URL = 'https://www.google.pl';
   );
 
   try {
-    console.log(`\n🔍 Szukam: "${searchTerm}"`);
+    console.log(`\n📄 Wchodzę na: ${YOUR_URL}`);
     console.log(`📅 Czas: ${new Date().toLocaleString('pl-PL')}`);
 
-    // === GOOGLE ===
-    console.log('⏳ Otwieranie Google.pl...');
-    await page.goto(GOOGLE_URL, { waitUntil: 'networkidle2' });
-    
-    // Zaakceptuj cookies na Google
-    try {
-      await page.click('[aria-label="Zaakceptuj wszystko"]', { timeout: 3000 });
-      await page.waitForTimeout(1000);
-    } catch {
-      console.log('⚠️ Brak przycisku cookies Google');
-    }
-
-    // Wpisz w wyszukiwarkę
-    console.log('⏳ Wpisuję hasło...');
-    await page.click('input[name="q"]');
-    await page.type('input[name="q"]', searchTerm, { delay: 50 });
-    await page.keyboard.press('Enter');
-
-    // Czekaj na wyniki
-    console.log('⏳ Czekam na wyniki Google...');
-    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 });
-    await page.waitForTimeout(2000);
-
-    // Szukaj linku - aż znajdzie!
-    let mainLink = null;
-    let page_num = 1;
-    const MAX_PAGES = 20;
-
-    while (!mainLink && page_num <= MAX_PAGES) {
-      console.log(`🔎 Szukam ${YOUR_DOMAIN} na stronie ${page_num}...`);
-      
-      mainLink = await page.evaluate((domain) => {
-        const links = Array.from(document.querySelectorAll('a'));
-        const found = links.find(a => 
-          a.href && 
-          a.href.includes(domain) && 
-          !a.href.includes('cache:')
-        );
-        return found ? found.href : null;
-      }, YOUR_DOMAIN);
-
-      if (!mainLink) {
-        console.log(`⚠️ Nie znaleziono na stronie ${page_num}, szukam dalej...`);
-        
-      // Scroll do dołu
-await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-await page.waitForTimeout(2000);
-
-// Debugowanie - pokaż wszystkie linki
-const allLinks = await page.evaluate(() => {
-  return Array.from(document.querySelectorAll('a')).map(a => ({
-    text: a.textContent.trim(),
-    href: a.href
-  })).filter(l => l.text.length < 50);
-});
-console.log('🔍 Wszystkie linki na stronie:', allLinks);
-
-// Idź na następną stronę
-try {
-  let nextButton = null;
-  [nextButton] = await page.$x("//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'następna')]");
-          
-          if (nextButton) {
-            console.log('⏳ Przechodzę na stronę ' + (page_num + 1) + '...');
-            await nextButton.click();
-            await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 });
-            await page.waitForTimeout(1500);
-            page_num++;
-          } else {
-            console.log('❌ Koniec wyników Google!');
-            break;
-          }
-        } catch (error) {
-          console.log('❌ Błąd przy przechodzeniu do następnej strony');
-          break;
-        }
-      }
-    }
-
-    if (!mainLink) {
-      console.log(`\n❌ Nie znaleziono ${YOUR_DOMAIN} w wynikach!`);
-      await browser.close();
-      return;
-    }
-
-    // === TWOJA STRONA ===
-    console.log(`\n✅ ZNALEZIONO! Klika w: ${mainLink}`);
-    console.log('⏳ Wchodzę na Twoją stronę...');
-    await page.goto(mainLink, { waitUntil: 'networkidle2', timeout: 15000 });
+    // Wejdź na stronę
+    console.log('⏳ Ładuję stronę...');
+    await page.goto(YOUR_URL, { waitUntil: 'networkidle2', timeout: 15000 });
     
     // Czekaj na pojawienie się banerka cookies
     await page.waitForTimeout(2000);
